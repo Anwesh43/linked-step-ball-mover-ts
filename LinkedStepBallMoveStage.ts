@@ -4,7 +4,9 @@ const nodes : number = 5
 class LinkedStepBallMoverStage {
 	canvas : HTMLCanvasElement = document.createElement('canvas')
 	context : CanvasRenderingContext2D
-
+	sm : StepBallMover = new StepBallMover()
+	animator : Animator = new Animator()
+	
 	constructor() {
 
 	}
@@ -19,11 +21,19 @@ class LinkedStepBallMoverStage {
 	private render() {
 		this.context.fillStyle = '#212121'
 		this.context.fillRect(0, 0, w, h)
+		this.sm.draw(this.context)
 	}
 
 	private handleTap() {
 		this.canvas.onmousedown = () => {
-
+			this.sm.startUpdating(() => {
+				this.animator.start(() => {
+					this.render()
+					this.sm.update(() => {
+						this.animator.stop()
+					})
+				})
+			})
 		}
 	}
 
