@@ -76,3 +76,68 @@ class Animator {
 		}
 	}
 }
+
+class SMNode {
+		state : State = new State()
+		prev : SMNode
+		next : SMNode
+		constructor(public i : number) {
+			this.addNeighbor()
+		}
+
+		private addNeighbor() {
+			if (this.i < nodes - 1) {
+				this.next = new SMNode(this.i + 1)
+				this.next.prev = this
+			}
+		}
+
+		draw(context : CanvasRenderingContext2D, ballDraw : Function) {
+			const gap : number = w / nodes
+			const r : number = gap / 10
+			context.lineCap = 'round'
+			context.lineWidth = Math.min(w, h) / 60
+			context.strokeStyle = 'teal'
+			context.fillStyle = 'teal'
+			const index = this.i % 2
+			var sc1 = Math.min(0.5, this.state.scale) * 2
+			const sc2 = Math.min(0.5, Math.max(this.state.scale - 0.5, 0)) * 2
+			sc1 = (1 - sc1) * index + (1 - index) * sc1
+			const x : number =  gap * sc2
+			context.save()
+			context.translate(x, 0.8 * h - 0.3 * h * sc1)
+			context.beginPath()
+			context.moveTo(0, 0)
+			context.lineTo(gap, 0)
+			context.stroke()
+			if (ballDraw(this.i)) {
+				context.beginPath()
+				context.arc(x, -r, r, 0, 2 * Math.PI)
+				context.fill()
+			}
+			context.restore()
+			if (this.next) {
+					this.next.draw(context, (i) => false)
+			}
+		}
+
+		update(cb : Function) {
+			this.state.update(cb)
+		}
+
+		startUpdating(cb : Function) {
+			this.state.startUpdating(cb)
+		}
+
+		getNext(dir : number, cb : Function) : SMNode {
+			var curr : SMNode = this.prev
+			if (dir == 1) {
+				curr = this.next
+			}
+			if (curr) {
+				return curr
+			}
+			cb()
+			return this
+		}
+}
