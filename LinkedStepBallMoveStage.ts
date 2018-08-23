@@ -6,7 +6,7 @@ class LinkedStepBallMoverStage {
 	context : CanvasRenderingContext2D
 	sm : StepBallMover = new StepBallMover()
 	animator : Animator = new Animator()
-	
+
 	constructor() {
 
 	}
@@ -51,11 +51,11 @@ class State {
 	prevScale : number = 0
 
 	update(cb : Function) {
-		this.scale += 0.1 * this.dir
+		this.scale += 0.05 * this.dir
 		if (Math.abs(this.scale - this.prevScale) > 1) {
 			this.scale = this.prevScale + this.dir
 			this.dir = 0
-			this.prevScale = this.prevScale
+			this.prevScale = this.scale
 			cb()
 		}
 	}
@@ -102,7 +102,7 @@ class SMNode {
 			}
 		}
 
-		draw(context : CanvasRenderingContext2D, ballDraw : Function) {
+		draw(context : CanvasRenderingContext2D, currI : number) {
 			const gap : number = w / nodes
 			const r : number = gap / 10
 			context.lineCap = 'round'
@@ -114,20 +114,21 @@ class SMNode {
 			const sc2 = Math.min(0.5, Math.max(this.state.scale - 0.5, 0)) * 2
 			sc1 = (1 - sc1) * index + (1 - index) * sc1
 			const x : number =  gap * sc2
+			console.log(gap * this.i)
 			context.save()
-			context.translate(x, 0.8 * h - 0.3 * h * sc1)
+			context.translate(gap * this.i, 0.8 * h - 0.3 * h * sc1)
 			context.beginPath()
 			context.moveTo(0, 0)
 			context.lineTo(gap, 0)
 			context.stroke()
-			if (ballDraw(this.i)) {
+			if (currI == this.i) {
 				context.beginPath()
 				context.arc(x, -r, r, 0, 2 * Math.PI)
 				context.fill()
 			}
 			context.restore()
 			if (this.next) {
-					this.next.draw(context, (i) => false)
+					this.next.draw(context, currI)
 			}
 		}
 
@@ -153,11 +154,12 @@ class SMNode {
 }
 
 class StepBallMover {
-	curr : SMNode = new SMNode(0)
+	root : SMNode = new SMNode(0)
+	curr : SMNode = this.root
 	dir : number = 1
 
 	draw(context : CanvasRenderingContext2D) {
-		this.curr.draw(context, (i) => this.curr.i == i)
+		this.root.draw(context, this.curr.i)
 	}
 
 	update(cb : Function) {
